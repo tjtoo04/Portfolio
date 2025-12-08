@@ -1,0 +1,10 @@
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url('/public/assets/fonts/MonaspaceArgonNF-Regular.woff') format('woff');
+}
+
+:root {
+  background-color: oklch(0.3 0 272);
+  color: oklch(0.9362 0 272);
+  font-family: 'Monaspace Argon';
+}
