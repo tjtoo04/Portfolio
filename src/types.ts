@@ -4,7 +4,8 @@ export enum Commands {
   HELP = 'help',
   QUESTION = '?',
   LS = 'ls',
-  CD = 'cd'
+  CD = 'cd',
+  CAT = 'cat'
 }
 
 interface CommandInfo {
@@ -34,7 +35,10 @@ export const COMMAND_DESCRIPTIONS: Record<Commands, CommandInfo> = {
   },
   [Commands.CD]: {
     description: 'Changes the current directory to the selected directory.',
-  }
+  },
+  [Commands.CAT]: {
+    description: 'Outputs the content of a specified file to the terminal.'
+  },
 };
 
 export interface PathNode {

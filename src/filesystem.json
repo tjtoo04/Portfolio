@@ -1,0 +1,24 @@
+{
+  "root": {
+    "name": "",
+    "type": "dir",
+    "children": {
+      "projects": {
+        "name": "projects",
+        "type": "dir",
+        "children": {
+          "creature-code.md": {
+            "name": "creature-code.md",
+            "type": "file",
+            "content": "To be added"
+          }
+        }
+      },
+      "about-me.md": {
+        "name": "about-me.md",
+        "type": "file",
+        "content": "Too Tze Jiat APU Student"
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ import { useCommandHistoryStore } from '@/stores/commandHistory'
 import { COMMAND_DESCRIPTIONS, Commands, type FileSystem } from '@/types'
 import { TerminalPath } from '@/utils/TerminalPath'
 import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
+import * as fileSystemData from '../filesystem.json'
 
 const historyStore = useCommandHistoryStore()
 const termPrompt: string = '❯ '
@@ -10,32 +11,14 @@ const termCursor: string = '█'
 const currentLine: Ref<string> = ref('')
 const isBlinking: Ref<boolean> = ref(true)
 
-const INITIAL_FS: FileSystem = {
-  root: {
-    name: '', // Root
-    type: 'dir',
-    children: {
-      projects: {
-        name: 'projects',
-        type: 'dir',
-        children: {
-          CreatureCode: { name: 'CreatureCode', type: 'file', content: 'To be added' },
-        },
-      },
-      'about-me.md': {
-        name: 'about-me.md',
-        type: 'file',
-        content: 'Too Tze Jiat APU Student',
-      },
-    },
-  },
-}
+const INITIAL_FS: FileSystem = fileSystemData as FileSystem
 
 const terminal = new TerminalPath(INITIAL_FS)
 const currentPath = ref(terminal.getCurrentPath())
 
 const handleKeyPress = (event: KeyboardEvent) => {
   const disabledKeys = ['Meta', 'Shift', 'Tab', 'ArrowRight', 'ArrowLeft', 'Control']
+
   // Disable shortcuts and prevent input into terminal
   if (disabledKeys.includes(event.key)) {
     event.preventDefault()
@@ -52,7 +35,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
     return
   }
 
-  // Traverse command history
+  // Traverse commands history
   if (event.key == 'ArrowUp') {
     event.preventDefault()
     historyStore.traverseHistory('up')
@@ -164,6 +147,11 @@ const runCommand = (command: string, args: string[] = []): string => {
     }
   } else if (command == Commands.LS) {
     return terminal.ls()
+  } else if (command == Commands.CAT) {
+    if (args.length < 1) {
+      return 'cat: Missing file path. Specify a file path.'
+    }
+    return terminal.cat(args[0]!)
   }
   return ''
 }

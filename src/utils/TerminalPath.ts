@@ -112,4 +112,47 @@ export class TerminalPath {
     return false;
   }
 
+  /**
+   * Implements the 'cat' command logic.
+   * @param targetPath The path string provided by the user (e.g., 'about-me.md')
+   * @returns The content of the file, or an error message if the path is invalid or is a directory.
+   */
+  public cat(targetPath: string): string {
+    let fullPathComponents: string[];
+
+    if (targetPath.startsWith('/')) {
+      fullPathComponents = [];
+      targetPath = targetPath.substring(1);
+    } else {
+      fullPathComponents = [...this.currentPath]; // CRITICAL FIX: Use CWD as base
+    }
+
+    // Process path segments (e.g., handling '..', '.', and normal segments)
+    const segments = targetPath.split('/').filter(s => s.length > 0);
+
+    for (const segment of segments) {
+      if (segment === '..') {
+        if (fullPathComponents.length > 0) {
+          fullPathComponents.pop();
+        }
+      } else if (segment === '.') {
+        continue;
+      } else {
+        fullPathComponents.push(segment);
+      }
+    }
+
+    const targetNode = this.getNode(fullPathComponents);
+
+    if (!targetNode) {
+      return `cat: ${targetPath}: No such file or directory`;
+    }
+
+    if (targetNode.type === 'dir') {
+      return `cat: ${targetPath}: Is a directory`;
+    }
+
+    return targetNode.content || '';
+  }
+
 }
