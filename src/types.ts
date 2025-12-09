@@ -3,6 +3,8 @@ export enum Commands {
   CLS = 'cls',
   HELP = 'help',
   QUESTION = '?',
+  LS = 'ls',
+  CD = 'cd'
 }
 
 interface CommandInfo {
@@ -26,5 +28,22 @@ export const COMMAND_DESCRIPTIONS: Record<Commands, CommandInfo> = {
   [Commands.QUESTION]: {
     description: 'Displays a list of all available commands and their descriptions (alias for help).',
     alias: Commands.HELP
+  },
+  [Commands.LS]: {
+    description: 'Displays the list of directories available from the current directory.',
+  },
+  [Commands.CD]: {
+    description: 'Changes the current directory to the selected directory.',
   }
 };
+
+export interface PathNode {
+  name: string;
+  type: 'dir' | 'file';
+  children?: { [key: string]: PathNode }; // Key is the name for quick lookup
+  content?: string; // For 'file' type nodes
+}
+
+export interface FileSystem {
+  root: PathNode;
+}

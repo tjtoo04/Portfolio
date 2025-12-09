@@ -1,16 +1,67 @@
 <script setup lang="ts">
-import { COMMAND_DESCRIPTIONS, Commands } from '@/types'
+import { useCommandHistoryStore } from '@/stores/commandHistory'
+import { COMMAND_DESCRIPTIONS, Commands, type FileSystem } from '@/types'
+import { TerminalPath } from '@/utils/TerminalPath'
 import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 
+const historyStore = useCommandHistoryStore()
 const termPrompt: string = '❯ '
 const termCursor: string = '█'
 const currentLine: Ref<string> = ref('')
 const isBlinking: Ref<boolean> = ref(true)
 
-const handleKeyPress = (event: { key: string }) => {
-  if (event.key == 'Meta' || event.key == 'Shift' || event.key == 'Tab') return
+const INITIAL_FS: FileSystem = {
+  root: {
+    name: '', // Root
+    type: 'dir',
+    children: {
+      projects: {
+        name: 'projects',
+        type: 'dir',
+        children: {
+          CreatureCode: { name: 'CreatureCode', type: 'file', content: 'To be added' },
+        },
+      },
+      'about-me.md': {
+        name: 'about-me.md',
+        type: 'file',
+        content: 'Too Tze Jiat APU Student',
+      },
+    },
+  },
+}
+
+const terminal = new TerminalPath(INITIAL_FS)
+const currentPath = ref(terminal.getCurrentPath())
+
+const handleKeyPress = (event: KeyboardEvent) => {
+  const disabledKeys = ['Meta', 'Shift', 'Tab', 'ArrowRight', 'ArrowLeft', 'Control']
+  // Disable shortcuts and prevent input into terminal
+  if (disabledKeys.includes(event.key)) {
+    event.preventDefault()
+    return
+  }
+
+  // Disable shortcuts but allow input into terminal
+  if (event.key == '/') {
+    event.preventDefault()
+  }
+
   if (event.key == 'Backspace') {
     currentLine.value = currentLine.value.slice(0, -1)
+    return
+  }
+
+  // Traverse command history
+  if (event.key == 'ArrowUp') {
+    event.preventDefault()
+    historyStore.traverseHistory('up')
+    currentLine.value = historyStore.getHistory() || ''
+    return
+  } else if (event.key == 'ArrowDown') {
+    event.preventDefault()
+    historyStore.traverseHistory('down')
+    currentLine.value = historyStore.getHistory() || ''
     return
   }
 
@@ -39,15 +90,17 @@ const handleKeyPress = (event: { key: string }) => {
     // Delete cursor from prompt
     copyDiv.lastChild?.remove()
 
-    // Get prompt value then reset prompt
-    const value = currentLine.value
+    // Get prompt value, save to history, then reset prompt
+    const value = currentLine.value.split(' ')[0]
+    const args = currentLine.value.split(' ').slice(1)
+    historyStore.addHistory(currentLine.value)
     currentLine.value = ''
 
     // Insert before new prompt
     mainTermContainer.insertBefore(copyDiv, latestPromptDiv)
 
     // Perform function
-    const result = runCommand(value.trim())
+    const result = runCommand(value!.trim(), args)
 
     const resultDiv = document.createElement('div')
     resultDiv.style.whiteSpace = 'pre-wrap'
@@ -68,7 +121,7 @@ const isCommandEnum = (value: string): value is Commands => {
   return Object.values(Commands).includes(value as Commands)
 }
 
-const runCommand = (command: string): string => {
+const runCommand = (command: string, args: string[] = []): string => {
   if (!isCommandEnum(command))
     return 'Command not found. Type `help` or `?` for list of available commands.'
 
@@ -101,6 +154,16 @@ const runCommand = (command: string): string => {
     }
 
     return commandsInfo.trim()
+  } else if (command == Commands.CD) {
+    if (args.length < 1) return 'Path not provided'
+    if (terminal.cd(args[0]!)) {
+      currentPath.value = terminal.getCurrentPath()
+      return ''
+    } else {
+      return 'Invalid Path'
+    }
+  } else if (command == Commands.LS) {
+    return terminal.ls()
   }
   return ''
 }
@@ -124,7 +187,7 @@ onBeforeUnmount(() => {
       of available commands.
     </div>
     <div class="term-prompt-div">
-      <div class="prompt-text">{{ termPrompt }}</div>
+      <div class="prompt-text">{{ currentPath }} {{ termPrompt }}</div>
       <div class="input-text">{{ currentLine }}</div>
       <div :class="['cursor-block', { blinking: isBlinking }]">{{ termCursor }}</div>
     </div>
@@ -133,7 +196,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .main-terminal-container.is-ready {
-  transform: translate(-50%, -50%) scale(1);
+  transform: scale(1);
 }
 
 .main-terminal-container {
@@ -146,14 +209,11 @@ onBeforeUnmount(() => {
   padding: 1rem;
   font-family: monospace;
 
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
 
   transition: transform 0.6s ease-out;
 
-  transform: translate(-50%, -50%) scale(0);
+  transform: scale(0);
 }
 
 .term-prompt-div {

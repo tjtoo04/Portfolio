@@ -3,18 +3,28 @@ import Terminal from './components/Terminal.vue'
 </script>
 
 <template>
-  <h1>Tze Jiat's Termfolio</h1>
-  <div class="container">
-    <Terminal />
+  <div class="main-layout">
+    <h1>Tze Jiat's Termfolio</h1>
+    <div class="container">
+      <Terminal />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.container {
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding-top: 2rem;
+}
+
+.terminal-wrapper {
+  flex-grow: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100dvh;
 }
 </style>
