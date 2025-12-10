@@ -117,7 +117,7 @@ export class TerminalPath {
    * @param targetPath The path string provided by the user (e.g., 'about-me.md')
    * @returns The content of the file, or an error message if the path is invalid or is a directory.
    */
-  public cat(targetPath: string): string {
+  public cat(targetPath: string): { title: string, content: string, url: string } {
     let fullPathComponents: string[];
 
     if (targetPath.startsWith('/')) {
@@ -145,14 +145,19 @@ export class TerminalPath {
     const targetNode = this.getNode(fullPathComponents);
 
     if (!targetNode) {
-      return `cat: ${targetPath}: No such file or directory`;
+      return { title: '', content: `cat: ${targetPath}: No such file or directory`, url: '' }
     }
 
     if (targetNode.type === 'dir') {
-      return `cat: ${targetPath}: Is a directory`;
+      return { title: '', content: `cat: ${targetPath}: Is a directory`, url: '' }
     }
 
-    return targetNode.content || '';
+    // return targetNode.content || '';
+    return {
+      title: targetNode.title!,
+      content: targetNode.content || '',
+      url: targetNode.link || ''
+    }
   }
 
 }

@@ -46,6 +46,8 @@ export interface PathNode {
   type: 'dir' | 'file';
   children?: { [key: string]: PathNode }; // Key is the name for quick lookup
   content?: string; // For 'file' type nodes
+  link?: string;
+  title?: string
 }
 
 export interface FileSystem {

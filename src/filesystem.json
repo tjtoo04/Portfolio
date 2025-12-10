@@ -8,9 +8,39 @@
         "type": "dir",
         "children": {
           "creature-code.md": {
+            "title": "CreatureCode",
             "name": "creature-code.md",
             "type": "file",
-            "content": "To be added"
+            "content": "-- Python Educational Game with QR Code Implementation: --\n- Built a Slay the Spire + Pokemon style rougelike battle game where players can learn Class and OOP concepts in Python. \n- Uses Vue.js for the frontend and Express.js for the backend. \n- Implements QR Codes for Monster Creation and Raid Boss Lobbies. \n- Implements WebSockets for the battle lobbies, allowing for multiplayer collaboration. \n- Uses Gemini AI to create Python quizzes for players to answer.",
+            "link": "https://github.com/tjtoo04/CreatureCode.git"
+          },
+          "frauditor.md": {
+            "title": "Frauditor",
+            "name": "frauditor.md",
+            "type": "file",
+            "content": "-- Fraud Review Detection System (FutureHack 2025 Top 10 Finalist): --\n- Built a Google plugin using JavaScript that detects the legitimacy of Shopee reviews live.\n- Uses a self-trained Python model, hosted on Render, for prediction.\n- My involvement included scraping and classifying reviews, creating the Python backend API, and developing the plugin logic.",
+            "link": "https://github.com/Ywintersss/Frauditor"
+          },
+          "crowd-control.md": {
+            "title": "Crowd Control Prediction",
+            "name": "crowd-control.md",
+            "type": "file",
+            "content": "-- Crowd Control Prediction: --\n- A web application built with Next.js and FastAPI that predicts crowd count and flow to provide actionable insights for event organizers.\n- Achieved up to 95% confidence level in predicting crowd count.\n- Deployment used AWS services (Amplify, EC3).\n- The AI model was trained using AWS SageMaker AI, with data preprocessed by AWS Glue.",
+            "link": "https://github.com/SaponyCatty/NotTastyApp"
+          },
+          "pom.md": {
+            "title": "Purchasing Order Management System",
+            "name": "pom.md",
+            "type": "file",
+            "content": "-- Purchasing Order Management System (POMS): --\n- Built a Java GUI application to manage the procurement process.\n- Developed a QueryBuilder API for text files to simplify data querying.\n- Created a Routing API (like ReactRouter) to simplify page routing for teammates.\n- These APIs significantly quickened the team's development process",
+            "link": "https://github.com/Tianweiii/OWSB-Official"
+          },
+          "community-service.md": {
+            "title": "Community Service Web Application",
+            "name": "community-service.md",
+            "type": "file",
+            "content": "-- Community Service Web Application: --\n- Webpage built with HTML/CSS/JavaScript (frontend) and PHP/MySQL (backend).\n- Supports several user types and includes built-in validation and accuracy checks",
+            "link": "https://github.com/Ywintersss/CommunityWebApp"
           }
         }
       },

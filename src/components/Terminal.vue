@@ -2,14 +2,12 @@
 import { useCommandHistoryStore } from '@/stores/commandHistory'
 import { COMMAND_DESCRIPTIONS, Commands, type FileSystem } from '@/types'
 import { TerminalPath } from '@/utils/TerminalPath'
-import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import * as fileSystemData from '../filesystem.json'
 
 const historyStore = useCommandHistoryStore()
 const termPrompt: string = '❯ '
-const termCursor: string = '█'
-const currentLine: Ref<string> = ref('')
-const isBlinking: Ref<boolean> = ref(true)
+const currentLine = defineModel<string>()
 
 const INITIAL_FS: FileSystem = fileSystemData as FileSystem
 
@@ -17,24 +15,6 @@ const terminal = new TerminalPath(INITIAL_FS)
 const currentPath = ref(terminal.getCurrentPath())
 
 const handleKeyPress = (event: KeyboardEvent) => {
-  const disabledKeys = ['Meta', 'Shift', 'Tab', 'ArrowRight', 'ArrowLeft', 'Control']
-
-  // Disable shortcuts and prevent input into terminal
-  if (disabledKeys.includes(event.key)) {
-    event.preventDefault()
-    return
-  }
-
-  // Disable shortcuts but allow input into terminal
-  if (event.key == '/') {
-    event.preventDefault()
-  }
-
-  if (event.key == 'Backspace') {
-    currentLine.value = currentLine.value.slice(0, -1)
-    return
-  }
-
   // Traverse commands history
   if (event.key == 'ArrowUp') {
     event.preventDefault()
@@ -70,10 +50,8 @@ const handleKeyPress = (event: KeyboardEvent) => {
       copyDiv.appendChild(childClone)
     }
 
-    // Delete cursor from prompt
-    copyDiv.lastChild?.remove()
-
     // Get prompt value, save to history, then reset prompt
+    if (!currentLine.value) return
     const value = currentLine.value.split(' ')[0]
     const args = currentLine.value.split(' ').slice(1)
     historyStore.addHistory(currentLine.value)
@@ -96,8 +74,6 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
     return
   }
-
-  currentLine.value += event.key
 }
 
 const isCommandEnum = (value: string): value is Commands => {
@@ -151,14 +127,72 @@ const runCommand = (command: string, args: string[] = []): string => {
     if (args.length < 1) {
       return 'cat: Missing file path. Specify a file path.'
     }
-    return terminal.cat(args[0]!)
+    const output = terminal.cat(args[0]!)
+
+    if (output.title != '') {
+      appendTitle(output.title)
+    }
+
+    if (output.url != '') {
+      appendLink(output.url)
+    }
+
+    return output.content
   }
   return ''
+}
+
+const focusInput = () => {
+  const inputField = document.getElementById('term-input') as HTMLElement
+  if (!inputField) {
+    alert('Something is wrong!')
+    return
+  }
+
+  inputField.focus()
+}
+
+const appendTitle = (title: string) => {
+  const titleDiv = document.createElement('div')
+  const bold = document.createElement('b')
+
+  bold.textContent = '|~~ ' + title + ' ~~|'
+  titleDiv.style.fontSize = '32px'
+  titleDiv.appendChild(bold)
+
+  const mainTermContainer = document.querySelector('.main-terminal-container')
+  const lastEl = mainTermContainer?.lastChild
+
+  mainTermContainer?.insertBefore(titleDiv, lastEl!)
+}
+
+const appendLink = (url: string) => {
+  const linkDiv = document.createElement('div')
+  const linkText = document.createElement('span')
+  const linkEl = document.createElement('a')
+
+  linkEl.textContent = url + '\n\n'
+  linkEl.href = url
+  linkEl.target = '_blank'
+
+  linkText.textContent = '\nGithub Link: '
+
+  linkDiv.style.whiteSpace = 'pre-wrap'
+  linkDiv.style.marginTop = '0.2rem'
+  linkDiv.style.marginBottom = '0.2rem'
+  linkDiv.appendChild(linkText)
+  linkDiv.appendChild(linkEl)
+
+  const mainTermContainer = document.querySelector('.main-terminal-container')
+  const lastEl = mainTermContainer?.lastChild
+
+  mainTermContainer?.insertBefore(linkDiv, lastEl!)
 }
 
 onMounted(() => {
   setTimeout(() => {
     document.querySelector('.main-terminal-container')?.classList.add('is-ready')
+    focusInput()
     document.addEventListener('keydown', handleKeyPress)
   }, 500)
 })
@@ -169,15 +203,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="main-terminal-container">
+  <div @click="focusInput" class="main-terminal-container">
     <div>
       Welcome to my Termfolio (Terminal Portfolio)! Start by typing `help` or `?` to view the list
       of available commands.
     </div>
     <div class="term-prompt-div">
       <div class="prompt-text">{{ currentPath }} {{ termPrompt }}</div>
-      <div class="input-text">{{ currentLine }}</div>
-      <div :class="['cursor-block', { blinking: isBlinking }]">{{ termCursor }}</div>
+      <input v-model="currentLine" id="term-input" class="input-text" type="text" />
     </div>
   </div>
 </template>
@@ -210,13 +243,29 @@ onBeforeUnmount(() => {
   background-color: transparent;
 }
 
+.prompt-text {
+  display: flex;
+  width: 100%;
+  max-width: fit-content;
+}
+
 .term-output {
   white-space: pre-wrap;
   margin-top: 0.5rem;
 }
 
 .input-text {
+  width: 100%;
   margin-left: 0.5rem;
+  background: transparent;
+  border: none;
+  caret-color: oklch(0.9362 0 272);
+  caret-shape: block;
+  color: oklch(0.9362 0 272);
+}
+
+.input-text:focus {
+  outline: none;
 }
 
 .cursor-block {

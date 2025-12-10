@@ -1,4 +1,4 @@
-import { ref, computed, type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useCommandHistoryStore = defineStore('history', () => {
@@ -23,7 +23,6 @@ export const useCommandHistoryStore = defineStore('history', () => {
 
       }
     }
-    console.log(pointer.value)
   }
 
   const getHistory = () => history.value[pointer.value]
