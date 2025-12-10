@@ -43,23 +43,11 @@ const handleKeyPress = (event: KeyboardEvent) => {
     const mainTermContainer = document.querySelector('.main-terminal-container')
     if (!mainTermContainer) return
 
-    // Get latest prompt copy
     const latestPromptDiv = mainTermContainer.lastChild
     if (!latestPromptDiv) return
 
-    const copyDiv = latestPromptDiv.cloneNode()
-    const copyChildren = latestPromptDiv.childNodes
-
-    for (let index = 0; index < copyChildren.length; index++) {
-      const element = copyChildren[index]
-      if (!element) return
-
-      const elementText = element.textContent
-      const childClone = element.cloneNode()
-      childClone.textContent = elementText
-
-      copyDiv.appendChild(childClone)
-    }
+    const copyDiv = createLatestPromptDiv()
+    if (!copyDiv) return
 
     // Get prompt value, save to history, then reset prompt
     if (!currentLine.value) return
@@ -89,37 +77,30 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
 const triggerCompletions = () => {
   const userInput = currentLine.value?.split(' ')
-  console.log(userInput)
-  if (!userInput || userInput.length < 1) {
+  if (!userInput || userInput.length < 2) {
     const availableCommands = Object.values(Commands)
-    if (!userInput) {
-      let commands: string[] = []
+    let commands: string[] = []
 
-      availableCommands.map((key) => commands.push(key))
-      appendAutocompletionSuggestions(commands.join('\t'))
+    availableCommands.map((key) => commands.push(key))
+    appendAutocompletionSuggestions(commands.join('\t'))
 
-      return
-    }
+    return
   } else {
     // Only provide autosuggestions for last argument inputted
     const argsArr = userInput!.slice(1)
     const argForAutoSuggestion = argsArr[argsArr.length - 1]
 
     const pathList = runCommand(Commands.LS).split('\t')
+    const filteredSuggestions = pathList.filter((item) => {
+      return item.includes(argForAutoSuggestion!)
+    })
 
-    appendAutocompletionSuggestions(
-      pathList
-        .filter((item) => {
-          return item.includes(argForAutoSuggestion!)
-        })
-        .join('\t'),
-    )
+    if (filteredSuggestions.length > 1) {
+      appendAutocompletionSuggestions(filteredSuggestions.join('\t'))
+    } else {
+      currentLine.value = `${userInput[0]!} ${filteredSuggestions[0]}`
+    }
   }
-}
-
-const setSuggestedCompletion = (commands: string[], pointer: number) => {
-  currentLine.value = commands[pointer]
-  completionsPointer.value += 1
 }
 
 const isCommandEnum = (value: string): value is Commands => {
@@ -198,19 +179,54 @@ const focusInput = () => {
   inputField.focus()
 }
 
-const appendAutocompletionSuggestions = (text: string) => {
-  const existingSuggestionDiv = document.querySelector('.suggestions')
-  if (!existingSuggestionDiv) {
-    const suggestionDiv = document.createElement('div')
+const createLatestPromptDiv = () => {
+  const mainTermContainer = document.querySelector('.main-terminal-container')
+  if (!mainTermContainer) return
 
-    suggestionDiv.textContent = text
-    suggestionDiv.classList.add('suggestions')
+  const latestPromptDiv = mainTermContainer.lastChild
+  if (!latestPromptDiv) return
 
-    const mainTermContainer = document.querySelector('.main-terminal-container')
-    const lastEl = mainTermContainer?.lastChild
+  const copyDiv = latestPromptDiv.cloneNode()
+  const copyChildren = latestPromptDiv.childNodes
 
-    mainTermContainer?.insertBefore(suggestionDiv, lastEl!)
+  for (let index = 0; index < copyChildren.length; index++) {
+    const element = copyChildren[index]
+    if (!element) return
+
+    if (index == copyChildren.length - 1) {
+      const elementText = currentLine.value
+      const childClone = document.createElement('div')
+
+      childClone.style.whiteSpace = 'pre-wrap'
+      childClone.style.marginTop = '0.2rem'
+      childClone.style.marginBottom = '0.2rem'
+      childClone.style.marginLeft = '0.5rem'
+
+      childClone.textContent = elementText!
+      copyDiv.appendChild(childClone)
+    } else {
+      const elementText = element.textContent
+      const childClone = element.cloneNode()
+      childClone.textContent = elementText
+      copyDiv.appendChild(childClone)
+    }
   }
+
+  return copyDiv
+}
+
+const appendAutocompletionSuggestions = (text: string) => {
+  const suggestionDiv = document.createElement('div')
+
+  suggestionDiv.textContent = text
+  suggestionDiv.classList.add(`suggestions`)
+
+  const mainTermContainer = document.querySelector('.main-terminal-container')
+  const lastEl = mainTermContainer?.lastChild
+  const copyDiv = createLatestPromptDiv()
+
+  mainTermContainer?.insertBefore(copyDiv!, lastEl!)
+  mainTermContainer?.insertBefore(suggestionDiv, lastEl!)
 }
 
 const appendTitle = (title: string) => {

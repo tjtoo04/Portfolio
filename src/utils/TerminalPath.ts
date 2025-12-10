@@ -61,7 +61,7 @@ export class TerminalPath {
 
     const childNames = Object.values(currentNode.children);
     let names: string[] = []
-    childNames.map(key => names.push('/' + key.name))
+    childNames.map(key => names.push(key.type == 'dir' ? '/' + key.name : key.name))
 
     return names.join('\t');
   }
