@@ -5,7 +5,7 @@ import Terminal from './components/Terminal.vue'
 <template>
   <div class="main-layout">
     <h1>Tze Jiat's Termfolio</h1>
-    <div class="container">
+    <div class="terminal-wrapper">
       <Terminal />
     </div>
   </div>

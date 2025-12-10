@@ -98,6 +98,7 @@ const triggerCompletions = () => {
     if (filteredSuggestions.length > 1) {
       appendAutocompletionSuggestions(filteredSuggestions.join('\t'))
     } else {
+      if (filteredSuggestions.length == 0) return
       currentLine.value = `${userInput[0]!} ${filteredSuggestions[0]}`
     }
   }
@@ -312,6 +313,8 @@ onBeforeUnmount(() => {
   transition: transform 0.6s ease-out;
 
   transform: scale(0);
+
+  overflow: scroll;
 }
 
 .term-prompt-div {
