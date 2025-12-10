@@ -2,17 +2,20 @@
 import { useCommandHistoryStore } from '@/stores/commandHistory'
 import { COMMAND_DESCRIPTIONS, Commands, type FileSystem } from '@/types'
 import { TerminalPath } from '@/utils/TerminalPath'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import * as fileSystemData from '../filesystem.json'
 
 const historyStore = useCommandHistoryStore()
 const termPrompt: string = '❯ '
 const currentLine = defineModel<string>()
+const completionsPointer: Ref<number> = ref(0)
 
 const INITIAL_FS: FileSystem = fileSystemData as FileSystem
 
 const terminal = new TerminalPath(INITIAL_FS)
 const currentPath = ref(terminal.getCurrentPath())
+
+const resetCompletionsPointer = () => (completionsPointer.value = 0)
 
 const handleKeyPress = (event: KeyboardEvent) => {
   // Traverse commands history
@@ -20,15 +23,23 @@ const handleKeyPress = (event: KeyboardEvent) => {
     event.preventDefault()
     historyStore.traverseHistory('up')
     currentLine.value = historyStore.getHistory() || ''
+    resetCompletionsPointer()
     return
   } else if (event.key == 'ArrowDown') {
     event.preventDefault()
     historyStore.traverseHistory('down')
     currentLine.value = historyStore.getHistory() || ''
+    resetCompletionsPointer()
     return
   }
 
+  if (event.key == 'Tab') {
+    event.preventDefault()
+    triggerCompletions()
+  }
+
   if (event.key == 'Enter') {
+    resetCompletionsPointer()
     const mainTermContainer = document.querySelector('.main-terminal-container')
     if (!mainTermContainer) return
 
@@ -74,6 +85,41 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
     return
   }
+}
+
+const triggerCompletions = () => {
+  const userInput = currentLine.value?.split(' ')
+  console.log(userInput)
+  if (!userInput || userInput.length < 1) {
+    const availableCommands = Object.values(Commands)
+    if (!userInput) {
+      let commands: string[] = []
+
+      availableCommands.map((key) => commands.push(key))
+      appendAutocompletionSuggestions(commands.join('\t'))
+
+      return
+    }
+  } else {
+    // Only provide autosuggestions for last argument inputted
+    const argsArr = userInput!.slice(1)
+    const argForAutoSuggestion = argsArr[argsArr.length - 1]
+
+    const pathList = runCommand(Commands.LS).split('\t')
+
+    appendAutocompletionSuggestions(
+      pathList
+        .filter((item) => {
+          return item.includes(argForAutoSuggestion!)
+        })
+        .join('\t'),
+    )
+  }
+}
+
+const setSuggestedCompletion = (commands: string[], pointer: number) => {
+  currentLine.value = commands[pointer]
+  completionsPointer.value += 1
 }
 
 const isCommandEnum = (value: string): value is Commands => {
@@ -150,6 +196,21 @@ const focusInput = () => {
   }
 
   inputField.focus()
+}
+
+const appendAutocompletionSuggestions = (text: string) => {
+  const existingSuggestionDiv = document.querySelector('.suggestions')
+  if (!existingSuggestionDiv) {
+    const suggestionDiv = document.createElement('div')
+
+    suggestionDiv.textContent = text
+    suggestionDiv.classList.add('suggestions')
+
+    const mainTermContainer = document.querySelector('.main-terminal-container')
+    const lastEl = mainTermContainer?.lastChild
+
+    mainTermContainer?.insertBefore(suggestionDiv, lastEl!)
+  }
 }
 
 const appendTitle = (title: string) => {
