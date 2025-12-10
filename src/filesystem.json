@@ -45,6 +45,7 @@
         }
       },
       "about-me.md": {
+        "title": "About Me",
         "name": "about-me.md",
         "type": "file",
         "content": "Too Tze Jiat APU Student"
